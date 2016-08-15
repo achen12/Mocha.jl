@@ -9,7 +9,7 @@ export IdentityLayer, Index2OnehotLayer, MemoryOutputLayer
 export SquareLossLayer, SoftmaxLossLayer, MultinomialLogisticLossLayer
 export SoftlabelSoftmaxLossLayer, WassersteinLossLayer, HingeLossLayer
 export AccuracyLayer, BinaryAccuracyLayer, BinaryCrossEntropyLossLayer
-export ConfusionMatrixLayer
+export ConfusionMatrixLayer,ROCPlotLayer
 
 export RandomNormalLayer
 export GaussianKLLossLayer
@@ -235,5 +235,6 @@ include("layers/hinge-loss.jl")
 #############################################################
 include("layers/accuracy.jl")
 include("layers/confusion-mat.jl")
+include("layers/recv-op-char-plot.jl")
 include("layers/binary-accuracy.jl")
 
