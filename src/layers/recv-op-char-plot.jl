@@ -1,4 +1,5 @@
 using PyPlot
+#Note: This is a Pseudo ROC plot for Binary classification with 2 neural node output.
 @defstruct ROCPlotLayer Layer (
   name :: AbstractString = "receiver_operator_characteristic-plot",
   report_error :: Bool = false,
@@ -14,8 +15,8 @@ type ROCPlotLayerState <: LayerState
   layer :: ROCPlotLayer
 
   op_dim   :: Int
-  x        :: Array{Float32,1}
-  y        :: Array{Float32,1}
+  x1        :: Array{Float32,1}
+  x2        :: Array{Float32,1}
   etc      :: Any
 end
 
@@ -36,8 +37,8 @@ function shutdown(backend::CPUBackend, state::ROCPlotLayerState)
 end
 
 function reset_statistics(state::ROCPlotLayerState)
-  state.x = Array{Float32,1}()
-  state.y = Array{Float32,1}()
+  state.x1 = Array{Float32,1}()
+  state.x2 = Array{Float32,1}()
 end
 
 function dump_statistics(storage, state::ROCPlotLayerState, show::Bool)
@@ -49,13 +50,24 @@ function dump_statistics(storage, state::ROCPlotLayerState, show::Bool)
   end
 
   if show
-    dump(length(state.x))
-    plot(state.x,state.y, color="black",linewidth=0.0,linestyle="",marker=".", alpha=0.02)
-    plot(collect(0:10), collect(0:10), color="black",linewidth=1.0, linestyle="-")
-    if isfile("plot.svg")
-        rm("plot.svg")
+    #TODO
+    dump(length(state.x1))
+    PyPlot.clf()
+    maxval = reduce(max,state.x1)
+    minval = reduce(min,state.x1)
+    lx1 = length(state.x1)
+    x = map(i -> sum(state.x1 .> i)/lx1 ,linspace(minval,maxval,1000))
+    
+    maxval = reduce(max,state.x2)
+    minval = reduce(min,state.x2)
+    lx2 = length(state.x2)
+    y = map(i -> sum(state.x2 .> i)/lx2 ,linspace(minval,maxval,1000))
+
+    plot(x,y, color="black",linewidth=2.0,linestyle="-")
+    if isfile("roc-plot.svg")
+        rm("roc-plot.svg")
     end
-    savefig("plot.svg")
+    savefig("roc-plot.svg")
   end
 end
 
@@ -70,8 +82,9 @@ function forward(backend::CPUBackend, state::ROCPlotLayerState, inputs::Vector{B
     for j = 0:dim_post-1
       idx = Int[i + dim_pre*(k + dim_prob*j) for k=0:(dim_prob-1)] + 1
       if round(Int, label[i + dim_pre*j + 1]) == 1
-          push!(state.x,pred[idx][1])
-          push!(state.y,pred[idx][2])
+          push!(state.x1,pred[idx][1])
+      else
+          push!(state.x2,pred[idx][2])
       end
     end
   end
